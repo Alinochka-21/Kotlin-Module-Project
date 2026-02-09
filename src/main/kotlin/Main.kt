@@ -1,6 +1,6 @@
 fun main(args: Array<String>) {
     println("Начало программы")
-    while (GeneralLogic.value==false){
+    while (GeneralLogic.exiteApp==false){
         GeneralLogic.choiceCommand()
     }
 }

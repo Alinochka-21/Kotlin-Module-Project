@@ -1,26 +1,31 @@
 import java.util.Scanner
 object GeneralLogic{
     val archiveList : MutableList<NotesArchive> = mutableListOf()
-    var appLevel = "MAIN"  // "ARCHIVE" "NOTE"
+    enum class appLevel{
+        MAIN,
+        ARCHIVE,
+        NOTE
+    }
+    var levelApp:appLevel = appLevel.MAIN  // "ARCHIVE" "NOTE"
     var  choiceArchive: NotesArchive? = null
     var  choiceNote: Note? = null
-    var value: Boolean = false
+    var exiteApp: Boolean = false
 
     fun choiceCommand(){
-        when (appLevel){
-            "MAIN" -> {
+        when (levelApp){
+            appLevel.MAIN -> {
                 println("Вы в главном меню")
                 println("Выберите команду, надо написать число:")
                 println("0 - Выход\n1 - Создать Архив\n2 - Показать список созданных Архивов")
                 this.command()
             }
-            "ARCHIVE" -> {
+            appLevel.ARCHIVE -> {
                 println("Вы в архиве \'${choiceArchive!!.name}\'")
                 println("Выберите команду, надо написать число:")
                 println("0 - Выход\n1 - Создать Заметку\n2 - Показать список созданных Заметок")
                 this.command()
             }
-            "NOTE" -> {
+            appLevel.NOTE -> {
                 println("Вы в заметках архива \'${choiceArchive!!.name}\'")
                 println("Выберите команду, надо написать число:")
                 println("0 - Выход\n1 - Выбрать Заметку")
@@ -48,70 +53,52 @@ object GeneralLogic{
         }
     }
     fun exit(){
-        when (appLevel){
-            "NOTE" -> {
-                appLevel = "ARCHIVE"
+        when (levelApp){
+            appLevel.NOTE -> {
+                levelApp = appLevel.ARCHIVE
                 choiceCommand()
             }
-            "ARCHIVE" -> {
-                appLevel = "MAIN"
+            appLevel.ARCHIVE -> {
+                levelApp = appLevel.MAIN
                 choiceNote = null
                 choiceCommand()
             }
-            "MAIN" -> {
+            appLevel.MAIN -> {
                 println("Завершение программы")
                 choiceArchive = null
                 archiveList.clear()
-                value = true
+                exiteApp = true
             }
         }
     }
 
     fun createArchiveOrNote(){
-        when (appLevel) {
-            "MAIN" -> {
-                println("Введите имя архива:")
-                var probableArchive = Scanner(System.`in`).nextLine()
+        when (levelApp) {
+            appLevel.MAIN -> {
+                var probableArchive = inputText()
+                archiveList.add(NotesArchive(probableArchive))
+                println("Архив добавлен в список ваших архивов")
+                println("------------")
+                levelApp =appLevel.MAIN
+                choiceCommand()
 
-                if (probableArchive.trim().isNotEmpty()) {
-                    archiveList.add(NotesArchive(probableArchive))
-                    println("Архив добавлен в список ваших архивов")
-                    println("------------")
-                    appLevel ="MAIN"
-                    choiceCommand()
-                } else {
-                    println("Имя архива не может быть пустым")
-                    this.createArchiveOrNote()
-                }
             }
-            "ARCHIVE" -> {
-                println("Введите имя заметки:")
-                var probableNote = Scanner(System.`in`).nextLine()
-                if (probableNote.trim().isNotEmpty()) {
-                    println("Напишите содержание заметки:")
-                    var content: String = Scanner(System.`in`).nextLine()
-                    if (content.trim().isNotEmpty()){
-                        choiceArchive!!.noteList.add(Note(probableNote, content))
-                        println("Заметка успешно сохранена")
-                        println("------------")
-                        this.choiceCommand()
-                    }
-                    else {
-                        println("Заметка не может быть пустой!")
-                        this.createArchiveOrNote()
-                    }
-                }
-                else{
-                    println("Имя заметки не может быть пустым!")
-                    this.createArchiveOrNote()
-                }
+            appLevel.ARCHIVE -> {
+                var probableNote = inputText()
+                println("Напишите содержание заметки:")
+                var content: String = inputText()
+                choiceArchive!!.noteList.add(Note(probableNote, content))
+                println("Заметка успешно сохранена")
+                println("------------")
+                this.choiceCommand()
             }
+            appLevel.NOTE -> {}
         }
     }
 
     fun showList(){
-        when (appLevel){
-            "MAIN" -> {
+        when (levelApp){
+            appLevel.MAIN -> {
                 println("Список созданных архивов:")
                 if (archiveList.size == 0) {
                     println("Здесь пусто. Создайте архив")
@@ -125,7 +112,7 @@ object GeneralLogic{
                 println("Введите число, чтобы выбрать нужный Архив")
                 this.open(readInt(archiveList.size,::showList))
             }
-            "ARCHIVE" -> {
+            appLevel.ARCHIVE -> {
                 println("Список созданных заметок:")
                 if (choiceArchive!!.noteList.size == 0) {
                     println("Здесь пусто. Создайте заметку")
@@ -135,22 +122,23 @@ object GeneralLogic{
                 choiceArchive!!.noteList.forEachIndexed { index, obj ->
                     println("$index - ${obj.name}")
                 }
-                appLevel = "NOTE"
+                levelApp = appLevel.NOTE
                 println("------------")
                 choiceCommand()
             }
+            appLevel.NOTE -> {}
         }
     }
 
     fun open(number: Int){
-        when (appLevel) {
-            "MAIN" -> {
+        when (levelApp) {
+            appLevel.MAIN  -> {
                 println("------------")
                 choiceArchive = archiveList[number]
-                appLevel = "ARCHIVE"
+                levelApp = appLevel.ARCHIVE
                 this.choiceCommand()
             }
-            "NOTE" -> {
+            appLevel.NOTE -> {
                 println("------------")
                 choiceNote = choiceArchive!!.noteList[number]
                 println("Вы открыли заметку \"${choiceNote!!.name}\"! Хотите узнать ее содержимое?\n0 - ДА\n1 - НЕТ")
@@ -162,10 +150,11 @@ object GeneralLogic{
                     this.choiceCommand()
                 }
                 else if (answer==1){
-                    appLevel = "ARCHIVE"
+                    levelApp = appLevel.ARCHIVE
                     this.choiceCommand()
                 }
             }
+            appLevel.ARCHIVE -> {}
         }
     }
 
@@ -184,6 +173,17 @@ object GeneralLogic{
             } else {
                 return number
             }
+        }
+    }
+    fun inputText(): String {
+        println("Введите текст")
+        var text: String = Scanner(System.`in`).nextLine()
+        if (text.trim().isNotEmpty()){
+            return text
+        }
+        else {
+            println("Это поле не может быть пустым")
+            return this.inputText()
         }
     }
 }
