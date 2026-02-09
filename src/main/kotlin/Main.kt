@@ -1,3 +1,6 @@
 fun main(args: Array<String>) {
-    println("Hello World!")
+    println("Начало программы")
+    while (GeneralLogic.exiteApp==false){
+        GeneralLogic.choiceCommand()
+    }
 }
